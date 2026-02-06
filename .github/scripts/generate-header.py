@@ -79,26 +79,26 @@ SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
   </defs>
 
   <style>
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-8px); }
-    }
-    @keyframes tailWag {
-      0%, 100% { transform: rotate(-5deg); }
-      50% { transform: rotate(5deg); }
-    }
-    @keyframes earTwitch {
-      0%, 90%, 100% { transform: scale(1); }
-      95% { transform: scale(1.1); }
-    }
-    @keyframes sparkle {
-      0%, 100% { opacity: 0; transform: scale(0.5); }
-      50% { opacity: 1; transform: scale(1); }
-    }
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
+    @keyframes float {{
+      0%, 100% {{ transform: translateY(0px); }}
+      50% {{ transform: translateY(-8px); }}
+    }}
+    @keyframes tailWag {{
+      0%, 100% {{ transform: rotate(-5deg); }}
+      50% {{ transform: rotate(5deg); }}
+    }}
+    @keyframes earTwitch {{
+      0%, 90%, 100% {{ transform: scale(1); }}
+      95% {{ transform: scale(1.1); }}
+    }}
+    @keyframes sparkle {{
+      0%, 100% {{ opacity: 0; transform: scale(0.5); }}
+      50% {{ opacity: 1; transform: scale(1); }}
+    }}
+    @keyframes slideIn {{
+      from {{ opacity: 0; transform: translateX(-20px); }}
+      to {{ opacity: 1; transform: translateX(0); }}
+    }}
     .main-text {{ animation: float 3s ease-in-out infinite; }}
     .cat-head {{ animation: float 3s ease-in-out infinite 0.5s; }}
     .tail {{ animation: tailWag 2s ease-in-out infinite; transform-origin: bottom center; }}
