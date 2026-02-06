@@ -27,4 +27,6 @@ pnpm-debug.log*
 
 # Test files
 test-*.png
+test-*.svg
 *.test.png
+*.test.svg

@@ -1,68 +1,54 @@
 # cc-Agent-teams-sandbox
 
+<div align="center">
+  <img src="assets/release-header-v0.1.0.svg" alt="Agent Teams Sandbox Release Header" width="600">
+</div>
 
-プロンプト例
+Claude Codeのエージェントチーム機能を試すためのサンドボックスリポジトリ。
 
-ーーー
+## 概要
 
-エージェントチームを作ってください。
-目的：おみくじアプリの作成。example フォルダにリポジトリを作成し実装する。
-役割：
-- UX担当
-- 技術アーキテクト担当
-- 悪魔の代弁者（反証・リスク洗い出し）
+このリポジトリは、Claude CodeのAgent Teams機能の検証と実験のために作成されました。テーマに沿ったエージェントチームを結成し、協調してタスクを達成する様子を観察・実験します。
 
+## 特徴
 
-ーーー
+- 🐱 **テーマ別エージェントチーム**: 桃太郎、魔王軍団、猫のシステム会社など、様々なテーマでチームを結成
+- 🤖 **自動リリースシステム**: GitHub Actionsで猫テーマのヘッダー画像付きリリースノートを自動生成
+- 🎨 **カスタムSVGヘッダー**: `.github/scripts/generate-header.py` でアニメーション付きのヘッダー画像を生成
 
-桃太郎をテーマにしたエージェントチームを作ってください。
-目的：桃太郎が鬼を退治するのに役にたつアプリの作成。example フォルダにリポジトリを作成し実装する。
-各エージェントの役割は適宜必要なエージェントを作成してね
+## 自動リリースシステム
 
+リリースを作成すると、自動的に以下の処理が実行されます：
 
----
+1. 猫テーマのSVGヘッダー画像生成
+2. Gitコミット履歴からチェンジログ作成
+3. リリースノートの自動更新
 
+### 生成されるヘッダー画像
 
-魔王軍団をテーマにしたエージェントチームを作ってください。
-目的：魔王軍団がClaudeCodeのエージェントチームを管理するダッシュボードアプリの作成。example フォルダにリポジトリを作成し実装してデプロイする。
-READMEも最高峰のクオリティにして
-想定では /home/maki/.claude/teams をリアルタイムに関しして表示するような感じになると思う
+- 浮遊する猫の顔（アニメーション付き）
+- 揺れるしっぽ
+- キラキラ光るスター
+- 猫の肉球パターン背景
+- バージョンバッジ
 
-各エージェントの役割は適宜必要なエージェントを作成してね
+## エージェントチームの例
 
-参考情報
+### Nyan Corporation 🐱
 
-https://code.claude.com/docs/en/agent-teams
-/home/maki/.claude/teams
+猫の運営するシステム会社をテーマにしたエージェントチーム。
 
+| メンバー | 役割 |
+|----------|------|
+| Boss Cat | 代表取締役猫・チーム統括 |
+| Repository Cat | リポジトリ整備担当 |
+| Release Cat | リリース担当 |
+| QA Cat | テスト・検証担当 |
 
-ーーー
+## リリース
 
-猫の運営するシステム会社をテーマにしたエージェントチームを作ってください。
-目的：
+- [v0.1.0](https://github.com/Sunwood-AI-OSS-Hub/cc-Agent-teams-sandbox/releases/tag/v0.1.0) - Initial Release
 
-.github/scripts/generate-header.py
-.github/workflows/auto-release-notes.yml
-の動作検証！
-実際にリリースノートを作成してちゃんと画像が生成されて埋め込まれるか検証して
+## ライセンス
 
-各チームメンバーの役割は適宜必要なチームメンバーを作成してね
-
-
-
-
-ーーー
-
-.claude/settings.json
-
-
-
-.zshrc
-
-export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
-export ANTHROPIC_AUTH_TOKEN="xxxxxxxx"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.7"
-export ANTHROPIC_API_KEY=""
-
+MIT
