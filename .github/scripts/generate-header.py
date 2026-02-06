@@ -1,185 +1,291 @@
 #!/usr/bin/env python3
 """
-GitHubリリースノート用のヘッダー画像を生成するスクリプト
+Release Header Image Generator for Nyan Corporation
 
-Pillowを使用して、猫のシステム会社「Nyan Corporation」の
-リリースノート用ヘッダー画像を生成します。
+Generates SVG header images for release notes with cat theme.
 """
 
-import os
+import argparse
+import re
 import sys
 from pathlib import Path
-
-try:
-    from PIL import Image, ImageDraw, ImageFont
-except ImportError:
-    print("Error: Pillow is not installed.", file=sys.stderr)
-    print("Install with: pip install Pillow", file=sys.stderr)
-    sys.exit(1)
+from datetime import datetime
 
 
-def create_header_image(
+# SVG Template with Cat Theme
+SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 315" width="1200" height="315">
+  <defs>
+    <!-- Gradient Background - Cat Theme Colors -->
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e">
+        <animate attributeName="stop-color" values="#1a1a2e;#16213e;#1a1a2e" dur="8s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" style="stop-color:#2d3436">
+        <animate attributeName="stop-color" values="#2d3436;#1e272e;#2d3436" dur="8s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" style="stop-color:#1a1a2e">
+        <animate attributeName="stop-color" values="#1a1a2e;#16213e;#1a1a2e" dur="8s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+
+    <!-- Cat Accent Gradient -->
+    <linearGradient id="cat-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9f43">
+        <animate attributeName="stop-color" values="#ff9f43;#feca57;#ff9f43" dur="3s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" style="stop-color:#ee5a24">
+        <animate attributeName="stop-color" values="#ee5a24;#f79f1f;#ee5a24" dur="3s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" style="stop-color:#ff9f43">
+        <animate attributeName="stop-color" values="#ff9f43;#feca57;#ff9f43" dur="3s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+
+    <!-- Text Gradient -->
+    <linearGradient id="text-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#74b9ff">
+        <animate attributeName="stop-color" values="#74b9ff;#a29bfe;#74b9ff" dur="4s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" style="stop-color:#a29bfe">
+        <animate attributeName="stop-color" values="#a29bfe;#fd79a8;#a29bfe" dur="4s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" style="stop-color:#fd79a8">
+        <animate attributeName="stop-color" values="#fd79a8;#74b9ff;#fd79a8" dur="4s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+
+    <!-- Glow Effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur">
+        <animate attributeName="stdDeviation" values="4;6;4" dur="2s" repeatCount="indefinite"/>
+      </feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Paw Pattern -->
+    <pattern id="paws" width="60" height="60" patternUnits="userSpaceOnUse">
+      <g opacity="0.03">
+        <circle cx="20" cy="20" r="6" fill="#ff9f43"/>
+        <circle cx="35" cy="15" r="3" fill="#ff9f43"/>
+        <circle cx="45" cy="20" r="3" fill="#ff9f43"/>
+        <circle cx="50" cy="28" r="3" fill="#ff9f43"/>
+        <circle cx="30" cy="28" r="3" fill="#ff9f43"/>
+      </g>
+    </pattern>
+  </defs>
+
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes tailWag {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    @keyframes earTwitch {
+      0%, 90%, 100% { transform: scale(1); }
+      95% { transform: scale(1.1); }
+    }
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .main-text {{ animation: float 3s ease-in-out infinite; }}
+    .cat-head {{ animation: float 3s ease-in-out infinite 0.5s; }}
+    .tail {{ animation: tailWag 2s ease-in-out infinite; transform-origin: bottom center; }}
+    .ear-left {{ animation: earTwitch 4s ease-in-out infinite; transform-origin: bottom right; }}
+    .ear-right {{ animation: earTwitch 4s ease-in-out infinite 1s; transform-origin: bottom left; }}
+    .sparkle {{ animation: sparkle 2s ease-in-out infinite; }}
+    .version-badge {{ animation: slideIn 0.5s ease-out; }}
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="315" fill="url(#bg-gradient)"/>
+  <rect width="1200" height="315" fill="url(#paws)"/>
+
+  <!-- Decorative Circles -->
+  <circle cx="80" cy="157" r="70" fill="none" stroke="rgba(255,159,67,0.1)" stroke-width="2">
+    <animate attributeName="r" values="70;75;70" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="1120" cy="157" r="90" fill="none" stroke="rgba(116,185,255,0.1)" stroke-width="2">
+    <animate attributeName="r" values="90;95;90" dur="5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Cat Silhouette (Left) -->
+  <g class="cat-head" transform="translate(150, 157)">
+    <!-- Head -->
+    <circle cx="0" cy="0" r="35" fill="url(#cat-gradient)" opacity="0.8"/>
+    <!-- Ears -->
+    <path class="ear-left" d="M -25 -20 L -35 -50 L -10 -30 Z" fill="url(#cat-gradient)" opacity="0.8"/>
+    <path class="ear-right" d="M 25 -20 L 35 -50 L 10 -30 Z" fill="url(#cat-gradient)" opacity="0.8"/>
+    <!-- Eyes -->
+    <ellipse cx="-12" cy="-5" rx="6" ry="8" fill="#fff"/>
+    <ellipse cx="12" cy="-5" rx="6" ry="8" fill="#fff"/>
+    <ellipse cx="-11" cy="-5" rx="3" ry="6" fill="#1a1a2e"/>
+    <ellipse cx="13" cy="-5" rx="3" ry="6" fill="#1a1a2e"/>
+    <!-- Nose -->
+    <path d="M -4 8 L 0 12 L 4 8 Z" fill="#ff6b9d"/>
+    <!-- Mouth -->
+    <path d="M -4 12 Q 0 16 4 12" fill="none" stroke="#1a1a2e" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Whiskers -->
+    <g stroke="rgba(255,255,255,0.4)" stroke-width="1">
+      <line x1="-30" y1="5" x2="-15" y2="8"/>
+      <line x1="-30" y1="12" x2="-15" y2="12"/>
+      <line x1="30" y1="5" x2="15" y2="8"/>
+      <line x1="30" y1="12" x2="15" y2="12"/>
+    </g>
+  </g>
+
+  <!-- Cat Tail (Right) -->
+  <g class="tail" transform="translate(1050, 157)">
+    <path d="M 0 20 Q 30 -20 50 -40 Q 70 -60 60 -80" fill="none" stroke="url(#cat-gradient)" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <!-- Sparkles -->
+  <g class="sparkle">
+    <polygon points="300,80 305,90 315,90 307,97 310,107 300,100 290,107 293,97 285,90 295,90" fill="#feca57"/>
+  </g>
+  <g class="sparkle" style="animation-delay: 0.5s">
+    <polygon points="900,230 903,237 910,237 905,242 907,249 900,244 893,249 895,242 890,237 897,237" fill="#74b9ff"/>
+  </g>
+  <g class="sparkle" style="animation-delay: 1s">
+    <polygon points="250,250 253,257 260,257 255,262 257,269 250,264 243,269 245,262 240,257 247,257" fill="#fd79a8"/>
+  </g>
+  <g class="sparkle" style="animation-delay: 1.5s">
+    <polygon points="950,70 952,75 958,75 954,79 956,85 950,81 944,85 946,79 942,75 948,75" fill="#a29bfe"/>
+  </g>
+
+  <!-- Version Badge -->
+  <g class="version-badge">
+    <rect x="480" y="75" width="240" height="40" rx="20" fill="url(#cat-gradient)" opacity="0.3"/>
+    <text x="600" y="102" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="600" fill="#fff" letter-spacing="2">{version_tag}</text>
+  </g>
+
+  <!-- Main Text: Repository Name -->
+  <text x="600" y="180" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="900" fill="url(#text-gradient)" filter="url(#glow)" letter-spacing="4" class="main-text">{repo_name}</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="220" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="400" fill="rgba(255,255,255,0.7)" letter-spacing="3">{subtitle}</text>
+
+  <!-- Release Date -->
+  <text x="600" y="260" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="300" fill="rgba(255,255,255,0.5)" letter-spacing="2">{release_date}</text>
+
+  <!-- Cat Paw Prints Decoration -->
+  <g opacity="0.2" fill="#ff9f43">
+    <circle cx="50" cy="290" r="5"/>
+    <circle cx="1150" cy="30" r="5"/>
+    <circle cx="1150" cy="285" r="5"/>
+  </g>
+</svg>'''
+
+
+def parse_version(version_str: str) -> tuple:
+    """Parse version string and extract major, minor, patch."""
+    match = re.match(r'v?(\d+)\.(\d+)\.(\d+)', version_str)
+    if match:
+        return tuple(map(int, match.groups()))
+    return (0, 0, 0)
+
+
+def generate_header(
+    repo_name: str,
     version: str,
-    output_path: str,
-    width: int = 1200,
-    height: int = 400,
-    theme: str = "default"
-) -> None:
+    subtitle: str = "",
+    output_path: str = None,
+    release_date: str = None
+) -> str:
     """
-    リリースノート用ヘッダー画像を生成します
+    Generate SVG header image for release notes.
 
     Args:
-        version: リリースバージョン（例: v1.0.0）
-        output_path: 出力ファイルパス
-        width: 画像の幅（デフォルト: 1200）
-        height: 画像の高さ（デフォルト: 400）
-        theme: テーマ（default/dark/light）
+        repo_name: Repository name
+        version: Version string (e.g., "v1.0.0")
+        subtitle: Subtitle or description
+        output_path: Output file path (if None, returns SVG content)
+        release_date: Release date string (if None, uses today)
+
+    Returns:
+        SVG content string
     """
+    # Default values
+    if not subtitle:
+        subtitle = "Release Notes"
+    if not release_date:
+        release_date = datetime.now().strftime("%B %d, %Y")
 
-    # テーマに応じた色設定
-    themes = {
-        "default": {
-            "bg_start": (40, 40, 60),
-            "bg_end": (20, 20, 40),
-            "accent": (100, 180, 255),
-            "text": (255, 255, 255),
-            "subtext": (200, 200, 220)
-        },
-        "dark": {
-            "bg_start": (30, 30, 30),
-            "bg_end": (10, 10, 10),
-            "accent": (255, 200, 100),
-            "text": (255, 255, 255),
-            "subtext": (180, 180, 180)
-        },
-        "light": {
-            "bg_start": (240, 240, 250),
-            "bg_end": (220, 220, 240),
-            "accent": (100, 100, 180),
-            "text": (40, 40, 60),
-            "subtext": (100, 100, 120)
-        }
-    }
+    # Format version tag
+    version_tag = f"RELEASE {version.lstrip('v')}"
 
-    colors = themes.get(theme, themes["default"])
-
-    # 画像を作成
-    img = Image.new("RGB", (width, height), colors["bg_start"])
-    draw = ImageDraw.Draw(img)
-
-    # グラデーション背景
-    for y in range(height):
-        ratio = y / height
-        r = int(colors["bg_start"][0] * (1 - ratio) + colors["bg_end"][0] * ratio)
-        g = int(colors["bg_start"][1] * (1 - ratio) + colors["bg_end"][1] * ratio)
-        b = int(colors["bg_start"][2] * (1 - ratio) + colors["bg_end"][2] * ratio)
-        draw.rectangle([(0, y), (width, y + 1)], fill=(r, g, b))
-
-    # アクセントライン
-    line_height = 8
-    for i in range(line_height):
-        alpha = int(255 * (1 - i / line_height))
-        draw.rectangle(
-            [(0, i), (width, i + 1)],
-            fill=colors["accent"]
-        )
-
-    # デコレーション（猫の顔のようなパターン）
-    # 左耳
-    draw.polygon([
-        (80, 80), (120, 40), (160, 80)
-    ], fill=colors["accent"])
-    # 右耳
-    draw.polygon([
-        (width - 160, 80), (width - 120, 40), (width - 80, 80)
-    ], fill=colors["accent"])
-
-    # フォントの設定
-    try:
-        # システムフォントを使用
-        title_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 72)
-        version_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 48)
-        company_font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-    except (OSError, IOError):
-        # フォントが見つからない場合はデフォルトを使用
-        title_font = ImageFont.load_default()
-        version_font = ImageFont.load_default()
-        company_font = ImageFont.load_default()
-
-    # テキストを描画
-    # 会社名
-    company_text = "Nyan Corporation"
-    company_bbox = draw.textbbox((0, 0), company_text, font=company_font)
-    company_width = company_bbox[2] - company_bbox[0]
-    draw.text(
-        ((width - company_width) // 2, 120),
-        company_text,
-        fill=colors["text"],
-        font=company_font
+    # Replace placeholders
+    svg_content = SVG_TEMPLATE.format(
+        repo_name=repo_name.upper(),
+        version_tag=version_tag,
+        subtitle=subtitle,
+        release_date=release_date
     )
 
-    # バージョン
-    version_text = f"Release {version}"
-    version_bbox = draw.textbbox((0, 0), version_text, font=version_font)
-    version_width = version_bbox[2] - version_bbox[0]
-    draw.text(
-        ((width - version_width) // 2, 200),
-        version_text,
-        fill=colors["accent"],
-        font=version_font
-    )
+    # Write to file if output path specified
+    if output_path:
+        output_file = Path(output_path)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(svg_content, encoding='utf-8')
+        print(f"Generated: {output_path}", file=sys.stderr)
 
-    # サブテキスト
-    subtitle = "にゃあ〜、新しいバージョンが登場したにゃ！"
-    subtitle_bbox = draw.textbbox((0, 0), subtitle, font=company_font)
-    subtitle_width = subtitle_bbox[2] - subtitle_bbox[0]
-    draw.text(
-        ((width - subtitle_width) // 2, 270),
-        subtitle,
-        fill=colors["subtext"],
-        font=company_font
-    )
-
-    # 下部のアクセントライン
-    for i in range(line_height):
-        draw.rectangle(
-            [(0, height - line_height + i), (width, height - line_height + i + 1)],
-            fill=colors["accent"]
-        )
-
-    # 画像を保存
-    img.save(output_path, "PNG", optimize=True)
-    print(f"Header image saved to: {output_path}")
+    return svg_content
 
 
 def main():
-    """メイン関数"""
+    parser = argparse.ArgumentParser(
+        description='Generate SVG header image for release notes'
+    )
+    parser.add_argument(
+        '--repo', '-r',
+        default='Nyan Corporation',
+        help='Repository name (default: Nyan Corporation)'
+    )
+    parser.add_argument(
+        '--version', '-v',
+        required=True,
+        help='Version string (e.g., v1.0.0)'
+    )
+    parser.add_argument(
+        '--subtitle', '-s',
+        default='Release Notes',
+        help='Subtitle text (default: "Release Notes")'
+    )
+    parser.add_argument(
+        '--output', '-o',
+        help='Output file path'
+    )
+    parser.add_argument(
+        '--date', '-d',
+        help='Release date (default: today)'
+    )
 
-    # 環境変数からパラメータを取得
-    version = os.getenv("RELEASE_VERSION", "v1.0.0")
-    output_path = os.getenv("OUTPUT_PATH", "release-header.png")
-    theme = os.getenv("THEME", "default")
+    args = parser.parse_args()
 
-    # コマンドライン引数の処理
-    if len(sys.argv) > 1:
-        version = sys.argv[1]
-    if len(sys.argv) > 2:
-        output_path = sys.argv[2]
+    # Generate SVG
+    svg = generate_header(
+        repo_name=args.repo,
+        version=args.version,
+        subtitle=args.subtitle,
+        output_path=args.output,
+        release_date=args.date
+    )
 
-    # バージョン番号の整形
-    if not version.startswith("v"):
-        version = f"v{version}"
-
-    # 出力ディレクトリの作成
-    output_dir = os.path.dirname(output_path)
-    if output_dir:
-        os.makedirs(output_dir, exist_ok=True)
-
-    # 画像の生成
-    create_header_image(version, output_path, theme=theme)
-
-    return 0
+    # Print to stdout if no output file
+    if not args.output:
+        print(svg)
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+if __name__ == '__main__':
+    main()
