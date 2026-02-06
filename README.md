@@ -4,7 +4,7 @@
   <img src="assets/release-header-v0.1.0.svg" alt="Agent Teams Sandbox Release Header" width="600">
 </div>
 
-Claude Codeの**Agent Teams機能**のサンドボックスリポジトリ。
+Claude Codeの**Agent Teams機能**のサンドボックスリポジトリ（GLM-4.7対応）
 
 ## 概要
 
@@ -64,7 +64,30 @@ git clone https://github.com/Sunwood-AI-OSS-Hub/cc-Agent-teams-sandbox.git
 cd cc-Agent-teams-sandbox
 ```
 
-### 2. Claude Codeの設定
+### 2. Z.AI API の設定（GLM-4.7 で動かす場合）
+
+`.zshrc` に以下の設定を追加します：
+
+```bash
+# Z.AI API for Claude Code
+export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+export ANTHROPIC_AUTH_TOKEN="your_auth_token_here"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-4.5-air"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="glm-4.7"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="glm-4.7"
+export ANTHROPIC_API_KEY=""
+
+# optional, but recommended by Z.AI docs
+export API_TIMEOUT_MS="3000000"
+```
+
+設定後、反映させるには：
+
+```bash
+source ~/.zshrc
+```
+
+### 3. Claude Codeの設定
 
 `.claude/settings.json` でAgent Teamsを有効にします：
 
@@ -74,7 +97,7 @@ cd cc-Agent-teams-sandbox
 }
 ```
 
-### 3. チーム情報の保存場所
+### 4. チーム情報の保存場所
 
 エージェントチームの設定は以下の場所に保存されます：
 
@@ -89,7 +112,7 @@ cd cc-Agent-teams-sandbox
 ~/.claude/tasks/nyan-corp/
 ```
 
-### 4. チームの確認
+### 5. チームの確認
 
 作成されたチームは以下で確認できます：
 
