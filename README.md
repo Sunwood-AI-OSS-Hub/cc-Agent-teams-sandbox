@@ -1,8 +1,10 @@
-# cc-Agent-teams-sandbox
 
 <div align="center">
   <img src="assets/repo-header.svg" alt="Agent Teams Sandbox Header" width="600">
 </div>
+
+# cc-Agent-teams-sandbox
+
 
 Claude Codeの**Agent Teams機能**のサンドボックスリポジトリ（GLM-4.7対応）
 
