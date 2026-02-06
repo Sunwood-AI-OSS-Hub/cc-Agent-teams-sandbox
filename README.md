@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src="assets/repo-header.svg" alt="Agent Teams Sandbox Header" width="600">
+  <img src="assets/repo-header.svg" alt="Agent Teams Sandbox Header" width="100%">
 </div>
 
 # cc-Agent-teams-sandbox
