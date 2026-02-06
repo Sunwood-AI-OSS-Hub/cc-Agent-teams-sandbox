@@ -1,19 +1,4 @@
-#!/usr/bin/env python3
-"""
-Release Header Image Generator for Nyan Corporation
-
-Generates SVG header images for release notes with cat theme.
-"""
-
-import argparse
-import re
-import sys
-from pathlib import Path
-from datetime import datetime
-
-
-# SVG Template with Cat Theme
-SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 315" width="1200" height="315">
   <defs>
     <!-- Gradient Background - Cat Theme Colors -->
@@ -79,33 +64,33 @@ SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
   </defs>
 
   <style>
-    @keyframes float {{
-      0%, 100% {{ transform: translateY(0px); }}
-      50% {{ transform: translateY(-8px); }}
-    }}
-    @keyframes tailWag {{
-      0%, 100% {{ transform: rotate(-5deg); }}
-      50% {{ transform: rotate(5deg); }}
-    }}
-    @keyframes earTwitch {{
-      0%, 90%, 100% {{ transform: scale(1); }}
-      95% {{ transform: scale(1.1); }}
-    }}
-    @keyframes sparkle {{
-      0%, 100% {{ opacity: 0; transform: scale(0.5); }}
-      50% {{ opacity: 1; transform: scale(1); }}
-    }}
-    @keyframes slideIn {{
-      from {{ opacity: 0; transform: translateX(-20px); }}
-      to {{ opacity: 1; transform: translateX(0); }}
-    }}
-    .main-text {{ animation: float 3s ease-in-out infinite; }}
-    .cat-head {{ animation: float 3s ease-in-out infinite 0.5s; }}
-    .tail {{ animation: tailWag 2s ease-in-out infinite; transform-origin: bottom center; }}
-    .ear-left {{ animation: earTwitch 4s ease-in-out infinite; transform-origin: bottom right; }}
-    .ear-right {{ animation: earTwitch 4s ease-in-out infinite 1s; transform-origin: bottom left; }}
-    .sparkle {{ animation: sparkle 2s ease-in-out infinite; }}
-    .version-badge {{ animation: slideIn 0.5s ease-out; }}
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes tailWag {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    @keyframes earTwitch {
+      0%, 90%, 100% { transform: scale(1); }
+      95% { transform: scale(1.1); }
+    }
+    @keyframes sparkle {
+      0%, 100% { opacity: 0; transform: scale(0.5); }
+      50% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .main-text { animation: float 3s ease-in-out infinite; }
+    .cat-head { animation: float 3s ease-in-out infinite 0.5s; }
+    .tail { animation: tailWag 2s ease-in-out infinite; transform-origin: bottom center; }
+    .ear-left { animation: earTwitch 4s ease-in-out infinite; transform-origin: bottom right; }
+    .ear-right { animation: earTwitch 4s ease-in-out infinite 1s; transform-origin: bottom left; }
+    .sparkle { animation: sparkle 2s ease-in-out infinite; }
+    .version-badge { animation: slideIn 0.5s ease-out; }
   </style>
 
   <!-- Background -->
@@ -163,15 +148,15 @@ SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
   <g class="sparkle" style="animation-delay: 1.5s">
     <polygon points="950,70 952,75 958,75 954,79 956,85 950,81 944,85 946,79 942,75 948,75" fill="#a29bfe"/>
   </g>
-{version_badge}
+
   <!-- Main Text: Repository Name -->
-  <text x="600" y="180" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="900" fill="url(#text-gradient)" filter="url(#glow)" letter-spacing="4" class="main-text">{repo_name}</text>
+  <text x="600" y="180" text-anchor="middle" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="64" font-weight="900" fill="url(#text-gradient)" filter="url(#glow)" letter-spacing="4" class="main-text">AGENT TEAMS SANDBOX</text>
 
   <!-- Subtitle -->
-  <text x="600" y="220" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="400" fill="rgba(255,255,255,0.7)" letter-spacing="3">{subtitle}</text>
+  <text x="600" y="220" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="400" fill="rgba(255,255,255,0.7)" letter-spacing="3">Claude Code Agent Teams 機能の実験場</text>
 
   <!-- Release Date -->
-  <text x="600" y="260" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="300" fill="rgba(255,255,255,0.5)" letter-spacing="2">{release_date}</text>
+  <text x="600" y="260" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="300" fill="rgba(255,255,255,0.5)" letter-spacing="2">February 06, 2026</text>
 
   <!-- Cat Paw Prints Decoration -->
   <g opacity="0.2" fill="#ff9f43">
@@ -179,127 +164,4 @@ SVG_TEMPLATE = '''<?xml version="1.0" encoding="UTF-8"?>
     <circle cx="1150" cy="30" r="5"/>
     <circle cx="1150" cy="285" r="5"/>
   </g>
-</svg>'''
-
-
-def parse_version(version_str: str) -> tuple:
-    """Parse version string and extract major, minor, patch."""
-    match = re.match(r'v?(\d+)\.(\d+)\.(\d+)', version_str)
-    if match:
-        return tuple(map(int, match.groups()))
-    return (0, 0, 0)
-
-
-def generate_header(
-    repo_name: str,
-    version: str = "",
-    subtitle: str = "",
-    output_path: str = None,
-    release_date: str = None,
-    show_version_badge: bool = True
-) -> str:
-    """
-    Generate SVG header image for release notes.
-
-    Args:
-        repo_name: Repository name
-        version: Version string (e.g., "v1.0.0")
-        subtitle: Subtitle or description
-        output_path: Output file path (if None, returns SVG content)
-        release_date: Release date string (if None, uses today)
-        show_version_badge: Show/hide version badge
-
-    Returns:
-        SVG content string
-    """
-    # Default values
-    if not subtitle:
-        subtitle = "Release Notes"
-    if not release_date:
-        release_date = datetime.now().strftime("%B %d, %Y")
-
-    # Format version tag
-    if show_version_badge and version:
-        version_tag = f"RELEASE {version.lstrip('v')}"
-        version_badge_svg = '''  <!-- Version Badge -->
-  <g class="version-badge">
-    <rect x="480" y="75" width="240" height="40" rx="20" fill="url(#cat-gradient)" opacity="0.3"/>
-    <text x="600" y="102" text-anchor="middle" font-family="'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="600" fill="#fff" letter-spacing="2">{version_tag}</text>
-  </g>
-
-'''
-    else:
-        version_tag = ""
-        version_badge_svg = ""
-
-    # Replace placeholders
-    svg_content = SVG_TEMPLATE.format(
-        repo_name=repo_name.upper(),
-        version_tag=version_tag,
-        subtitle=subtitle,
-        release_date=release_date,
-        version_badge=version_badge_svg
-    )
-
-    # Write to file if output path specified
-    if output_path:
-        output_file = Path(output_path)
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(svg_content, encoding='utf-8')
-        print(f"Generated: {output_path}", file=sys.stderr)
-
-    return svg_content
-
-
-def main():
-    parser = argparse.ArgumentParser(
-        description='Generate SVG header image for release notes'
-    )
-    parser.add_argument(
-        '--repo', '-r',
-        default='Nyan Corporation',
-        help='Repository name (default: Nyan Corporation)'
-    )
-    parser.add_argument(
-        '--version', '-v',
-        required=True,
-        help='Version string (e.g., v1.0.0)'
-    )
-    parser.add_argument(
-        '--subtitle', '-s',
-        default='Release Notes',
-        help='Subtitle text (default: "Release Notes")'
-    )
-    parser.add_argument(
-        '--output', '-o',
-        help='Output file path'
-    )
-    parser.add_argument(
-        '--date', '-d',
-        help='Release date (default: today)'
-    )
-    parser.add_argument(
-        '--no-version-badge',
-        action='store_true',
-        help='Hide version badge'
-    )
-
-    args = parser.parse_args()
-
-    # Generate SVG
-    svg = generate_header(
-        repo_name=args.repo,
-        version=args.version,
-        subtitle=args.subtitle,
-        output_path=args.output,
-        release_date=args.date,
-        show_version_badge=not args.no_version_badge
-    )
-
-    # Print to stdout if no output file
-    if not args.output:
-        print(svg)
-
-
-if __name__ == '__main__':
-    main()
+</svg>
