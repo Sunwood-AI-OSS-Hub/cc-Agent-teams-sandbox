@@ -4,11 +4,11 @@
   <img src="assets/release-header-v0.1.0.svg" alt="Agent Teams Sandbox Release Header" width="600">
 </div>
 
-Claude Codeのエージェントチーム機能を試すためのサンドボックスリポジトリ。
+Claude Codeの**Agent Teams機能**のサンドボックスリポジトリ。
 
 ## 概要
 
-このリポジトリは、Claude CodeのAgent Teams機能の検証と実験のために作成されました。テーマに沿ったエージェントチームを結成し、協調してタスクを達成する様子を観察・実験します。
+このリポジトリは、[Claude CodeのAgent Teams機能](https://code.claude.com/docs/en/agent-teams)を試すためのサンドボックスです。テーマに沿ったエージェントチームを結成し、協調してタスクを達成する様子を観察・実験します。
 
 ## 特徴
 
@@ -52,6 +52,59 @@ Claude Codeのエージェントチーム機能を試すためのサンドボッ
 ## ライセンス
 
 MIT
+
+---
+
+## セットアップ
+
+### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/Sunwood-AI-OSS-Hub/cc-Agent-teams-sandbox.git
+cd cc-Agent-teams-sandbox
+```
+
+### 2. Claude Codeの設定
+
+`.claude/settings.json` でAgent Teamsを有効にします：
+
+```json
+{
+  "agentTeams": true
+}
+```
+
+### 3. チーム情報の保存場所
+
+エージェントチームの設定は以下の場所に保存されます：
+
+```bash
+# チーム設定ディレクトリ
+~/.claude/teams/
+
+# チーム設定ファイル（例：nyan-corp）
+~/.claude/teams/nyan-corp/config.json
+
+# タスクリスト
+~/.claude/tasks/nyan-corp/
+```
+
+### 4. チームの確認
+
+作成されたチームは以下で確認できます：
+
+```bash
+# チーム一覧
+ls ~/.claude/teams/
+
+# チーム設定の確認
+cat ~/.claude/teams/nyan-corp/config.json | jq .
+```
+
+## 参考ドキュメント
+
+- [Claude Code Agent Teams Documentation](https://code.claude.com/docs/en/agent-teams)
+- [GitHub: cc-Agent-teams-sandbox](https://github.com/Sunwood-AI-OSS-Hub/cc-Agent-teams-sandbox)
 
 ---
 
